@@ -1,0 +1,13 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        // 以上是默认的
+        // 以下是自己添加的
+        "*_*": false,
+        "**/*_*": false
+    },
+}
