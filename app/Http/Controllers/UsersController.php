@@ -36,6 +36,9 @@ class UsersController extends Controller
 
         // 获取请求的所有数据 $request->all()
 
+        // 注册后自动登录
+        Auth::login($user);
+
         // 使用 session() 访问会话实例
         // 存入一条缓存数据，并只在下一次请求内有效，使用 flash
         // flash, arg1: 会话的 key, arg2: 会话的 value; 实际上就是一个字典咯
