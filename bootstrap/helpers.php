@@ -6,7 +6,7 @@ function get_db_config() {
 
         return $db_config = [
             'connection' => 'pgsql',
-            'host' => $url("host"),
+            'host' => $url["host"],
             'database' => substr($url["path"], 1),
             'username' => $url["user"],
             'password' => $url["pass"],
