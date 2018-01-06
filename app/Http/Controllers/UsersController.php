@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 
 use Auth;
+use Mail;
 
 class UsersController extends Controller
 {
@@ -16,7 +17,7 @@ class UsersController extends Controller
 
         $this->middleware('auth', [
             // except 指定的动作不进行中间件过滤
-            'except' => ['show', 'create', 'store', 'index'],
+            'except' => ['show', 'create', 'store', 'index', 'confirmEmail'],
 
             // 同时还有，only, 指定的动作才会进行过滤，但使用 except 是最佳实践
         ]);
@@ -64,17 +65,22 @@ class UsersController extends Controller
         // 获取请求的所有数据 $request->all()
 
         // 注册后自动登录
-        Auth::login($user);
+        // Auth::login($user);
 
         // 使用 session() 访问会话实例
         // 存入一条缓存数据，并只在下一次请求内有效，使用 flash
         // flash, arg1: 会话的 key, arg2: 会话的 value; 实际上就是一个字典咯
-        session()->flash('success', 'welcome, you will start a new journey here');
+        // session()->flash('success', 'welcome, you will start a new journey here');
 
-        return redirect()->route('users.show', [$user]);
+        // return redirect()->route('users.show', [$user]);
 
         // route 会自动获取 model 的主键
         // return redirect()->route('users.show', [$user->id]);
+
+        // 注册后发送邮件
+        $this->sendEmailConfirmationTo($user);
+        session()->flash('success', 'check your email');
+        return redirect('/');
     }
 
     public function edit(User $user) {
@@ -118,5 +124,30 @@ class UsersController extends Controller
         $user->delete();
         session()->flash('success', 'deleted!');
         return back();
+    }
+
+    protected function sendEmailConfirmationTo($user) {
+        $view = 'emails.confirm';
+        $data = compact('user');
+        $from = 'aufree@yousails.com';
+        $name = 'Aufree';
+        $to = $user->email;
+        $subject = 'Thanks for registering, confirm your email';
+
+        Mail::send($view, $data, function($message) use ($from, $name, $to, $subject) {
+            $message->from($from, $name)->to($to)->subject($subject);
+        });
+    }
+
+    public function confirmEmail($token) {
+        $user = User::where('activation_token', $token)->firstOrFail();
+
+        $user->activated = true;
+        $user->activation_token = null;
+        $user->save();
+
+        Auth::login($user);
+        session()->flash('success', 'congratulations, activation succeeded');
+        return redirect()->route('users.show', [$user]);
     }
 }

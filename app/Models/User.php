@@ -27,6 +27,23 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+
+    // boot 方法在用户模型类完成初始化后进行加载
+    // 对事件的监听应放在 boot 中
+    public static function boot() {
+        parent::boot();
+
+        // 监听创建前的事件
+        static::creating(function($user) {
+            $user->activation_token = str_random(30);
+        });
+
+        // 监听创建后的事件
+        // static::create(function() {
+
+        // });
+    }
+
     public function gravatar($size = '100') {
         $hash = md5(strtolower(trim($this->attributes['email'])));
         return "http://www.gravatar.com/avatar/$hash?s=$size";
