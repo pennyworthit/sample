@@ -5,9 +5,36 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 
+use Auth;
+
 class UsersController extends Controller
 {
     //
+
+    public function __construct() {
+        // 应用中间件
+
+        $this->middleware('auth', [
+            // except 指定的动作不进行中间件过滤
+            'except' => ['show', 'create', 'store', 'index'],
+
+            // 同时还有，only, 指定的动作才会进行过滤，但使用 except 是最佳实践
+        ]);
+
+        // 只允许未登录用户访问注册页面
+        $this->middleware('guest', [
+            'only' => ['create'],
+        ]);
+    }
+
+    public function index() {
+        // $users = User::all();
+
+        // 分页
+        $users = User::paginate(10);
+
+        return view('users.index', compact('users'));
+    }
 
     public function create() {
         return view('users.create');
@@ -48,5 +75,48 @@ class UsersController extends Controller
 
         // route 会自动获取 model 的主键
         // return redirect()->route('users.show', [$user->id]);
+    }
+
+    public function edit(User $user) {
+
+        // authorize 用于检验用户授权策略
+        // authorize 来自与 App\Http\Controllers\Controller 的 AuthorizesRequests, 是存在于 Laravel 中的
+        // 当 authorize 时，无权限时，将抛出异常
+        // arg1 授权策略名称
+        // arg2 授权验证的数据
+        $this->authorize('update', $user);
+
+        // compact — 建立一个数组，包括变量名和它们的值, php 内置方法
+        // http://php.net/manual/zh/function.compact.php
+        return view('users.edit', compact('user'));
+    }
+
+    public function update(User $user, Request $request) {
+        $this->validate($request, [
+            'name' => 'required|max:50',
+            'password' => 'nullable|confirmed|min:6',
+        ]);
+
+        $this->authorize('update', $user);
+
+        $data = [];
+        $data['name'] = $request->name;
+        if ($request->password) {
+            $data['password'] = bcrypt($request->password); // bcrypt Laravel 内置方法
+        }
+        $user->update($data);
+
+        session()->flash('success', 'info updated');
+        return redirect()->route('users.show', $user->id);
+    }
+
+    public function destroy(User $user) {
+
+        // 检查授权状态
+        $this->authorize('destroy', $user);
+
+        $user->delete();
+        session()->flash('success', 'deleted!');
+        return back();
     }
 }

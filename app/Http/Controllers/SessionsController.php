@@ -9,6 +9,13 @@ class SessionsController extends Controller
 {
     //
 
+    public function __construct() {
+        // 只允许未登录的用户访问登录页面
+        $this->middleware('guest', [
+            'only' => ['create'],
+        ]);
+    }
+
     public function create() {
         return view('sessions.create');
     }
@@ -27,7 +34,11 @@ class SessionsController extends Controller
         // 4. remember 记住我，Laravel 已默认为用户生成的迁移文件中已经包含了 remember_token 字段
         if (Auth::attempt($credentials, $request->has("remember"))) {
             session()->flash('success', 'Welcome back!');
-            return redirect()->route('users.show', [Auth::user()]);
+            // return redirect()->route('users.show', [Auth::user()]);
+
+            // intended 将页面重定向到上一次请求尝试访问的页面
+            // arg1 默认跳转地址，若上一次请求记录为空，则跳转到默认地址上
+            return redirect()->intended(route('users.show', [Auth::user()]));
             // Auth::user() Laravel 提供来获取当前登录用户信息
         } else {
             session()->flash('danger', 'Sorry, email and password do not match');
