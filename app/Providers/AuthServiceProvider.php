@@ -17,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
         // 授权策略设置
         // $policies 属性用于将各种模型对应到管理它们的授权策略上
         \App\Models\User::class => \App\Policies\UserPolicy::class,
+        \App\Models\Status::class => \App\Policies\StatusPolicy::class,
     ];
 
     /**

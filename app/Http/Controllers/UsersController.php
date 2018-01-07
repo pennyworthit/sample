@@ -42,8 +42,11 @@ class UsersController extends Controller
     }
 
     public function show(User $user) {
+
+        $statuses = $user->statuses()->orderBy('created_at', 'desc')->paginate(30);
+
         // $user 通过 compact 方法转化为一个关联数组，传到 view
-        return view('users.show', compact('user'));
+        return view('users.show', compact('user', 'statuses'));
     }
 
     public function store(Request $request) {
